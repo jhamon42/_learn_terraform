@@ -1,0 +1,44 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+script_ssh = <<-SCRIPT
+    sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/g' /etc/ssh/sshd_config
+    service ssh restart
+SCRIPT
+
+cluster = {
+    "terraform" => {
+        :box => "ubuntu/xenial64",
+        :ip => "192.168.0.1",
+        :mem => 4096,
+        :cpus => 2,
+        :script => "install_terraform.sh"
+    },
+    "target" => {
+        :box => "ubuntu/xenial64",
+        :ip => "192.168.0.2",
+        :mem => 512,
+        :cpus => 1,
+        :script => "init_ssh_target.sh"
+    }
+}
+
+Vagrant.configure("2") do |config|
+    cluster.each do |hostname, info|
+        config.vm.define hostname do |cfg|
+            cfg.vm.box = info[:box]
+            cfg.vm.network :private_network, ip: info[:ip]
+            cfg.vm.provider :virtualbox do |vb|
+                vb.name = hostname
+                vb.memory = info[:mem]
+                vb.cpus = info[:cpus]
+                # vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+                # vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+            end
+            cfg.vm.provision :shell, inline: script_ssh
+            if info.has_key?(:script)
+                cfg.vm.provision :shell, path: info[:script]
+            end
+        end
+    end
+end
