@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"docker_install","Source":"./modules/docker_install","Dir":"modules/docker_install"},{"Key":"docker_wordpress","Source":"./modules/docker_wordpress","Dir":"modules/docker_wordpress"}]}
